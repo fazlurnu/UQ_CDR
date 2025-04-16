@@ -12,17 +12,17 @@ class StateBasedDetection(ConflictDetection):
     def conf_detect_hor(self,
         ownship_position: Point,
         ownship_gs: float,
-        ownship_heading: float,
+        ownship_trk: float,
         intruder_position: Point,
         intruder_gs: float,
-        intruder_heading: float,
+        intruder_trk: float,
         rpz: float,
         tlookahead: float
     ) -> Tuple[float, float, float, bool]:
 
         
-        own_heading_rad = np.radians(ownship_heading)
-        int_heading_rad = np.radians(intruder_heading)
+        own_heading_rad = np.radians(ownship_trk)
+        int_heading_rad = np.radians(intruder_trk)
 
         own_velocity = Point(ownship_gs * np.cos(own_heading_rad),
                              ownship_gs * np.sin(own_heading_rad))
@@ -58,7 +58,6 @@ class StateBasedDetection(ConflictDetection):
 
             is_in_conflict = (dcpa < rpz) and (tin < tlookahead)
 
-            print((tin, tout, dcpa, is_in_conflict))
             return (tin, tout, dcpa, is_in_conflict)
         else:
             return (0.0, 1e4, dcpa, False)

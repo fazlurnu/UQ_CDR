@@ -7,25 +7,25 @@ class MVPResolution(ConflictResolution):
     def __init__(self):
         self.reso_name = "MVP"
 
-    def resolve(self, ownship_pos, ownship_gs, ownship_heading,
-                      intruder_pos, intruder_gs, intruder_heading,
+    def resolve(self, ownship_position, ownship_gs, ownship_trk,
+                      intruder_position, intruder_gs, intruder_trk,
                       rpz, tlookahead=15, resofach=1.05):
 
         rpz_m = np.max(rpz * resofach)
         
-        dx = ownship_pos.x - intruder_pos.x
-        dy = ownship_pos.y - intruder_pos.y
+        dx = ownship_position.x - intruder_position.x
+        dy = ownship_position.y - intruder_position.y
         dist = np.sqrt(dx**2 + dy**2)
         qdr = np.arctan2(dy, dx)
         drel = np.array([np.sin(qdr) * dist, np.cos(qdr) * dist])
 
-        ownship_heading_rad = np.radians(ownship_heading)
-        intruder_heading_rad = np.radians(intruder_heading)
+        ownship_trk_rad = np.radians(ownship_trk)
+        intruder_trk_rad = np.radians(intruder_trk)
         
-        ownship_velocity = Point(ownship_gs * np.cos(ownship_heading_rad),
-                                 ownship_gs * np.sin(ownship_heading_rad))
-        intruder_velocity = Point(intruder_gs * np.cos(intruder_heading_rad),
-                                  intruder_gs * np.sin(intruder_heading_rad))
+        ownship_velocity = Point(ownship_gs * np.cos(ownship_trk_rad),
+                                 ownship_gs * np.sin(ownship_trk_rad))
+        intruder_velocity = Point(intruder_gs * np.cos(intruder_trk_rad),
+                                  intruder_gs * np.sin(intruder_trk_rad))
 
         dvx = ownship_velocity.x - intruder_velocity.x
         dvy = ownship_velocity.y - intruder_velocity.y
@@ -54,4 +54,4 @@ class MVPResolution(ConflictResolution):
             dv2 = (iH * dcpa[1]) / (abs(tcpa) * dabsH)
 
         dv = np.array([dv1, dv2, 0])
-        return dcpa, ownship_velocity.x + dv[1], ownship_velocity.y + dv[0]
+        return ownship_velocity.x + dv[1], ownship_velocity.y + dv[0]

@@ -23,7 +23,7 @@ tlookahead = 15  # seconds
 def test_mvp():
     print("\n=== Testing MVPResolution ===")
     mvp = MVPResolution()
-    dcpa, vx, vy = mvp.resolve(
+    vx, vy = mvp.resolve(
         ownship_pos=ownship_position,
         ownship_gs=ownship_gs,
         ownship_heading=ownship_heading,

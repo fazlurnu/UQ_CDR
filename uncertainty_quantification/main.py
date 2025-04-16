@@ -1,12 +1,13 @@
 import sys
 
 from uncertainty_quantification.monte_carlo_noise import ConflictResolutionSimulation
+from uncertainty_quantification.plot_functions import plot_uncertainty
 
-def main():
+def select_uncertainty():
     """
     Orchestrates the entire conflict-resolution demonstration by:
       1. Selecting which uncertainties and sources are active
-      2. Setting scenario noise parameters
+      2. Running the simulation
       3. Running the main simulation loop (clustering + plotting + CSV logging).
     """
     # 1. Create a selector for user input
@@ -36,10 +37,17 @@ def main():
     if any(char not in allowed_vehicle_letters for char in vehicle_uncertainty):
         raise ValueError("vehicle_uncertainty can only be 'o' or 'i'")
 
-    # 4. Initialize the conflict-resolution simulation
-    print("I'm here")
+    return nav_uncertainty, vehicle_uncertainty
+
+def main():
+    nav_uncertainty, vehicle_uncertainty = select_uncertainty()
+
+    ## ----- Starting MC simulations ---- ##
     sim = ConflictResolutionSimulation(nav_uncertainty, vehicle_uncertainty)
-    sim.run_simulation()
+    df = sim.run_simulation()
+
+    ## ---- Plotting ---- ##
+    plot_uncertainty(df)
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,29 @@
+cr_params:
+  tlookahead: 15
+  rpz: 50
+
+ownship:
+  x: 0
+  y: 0
+  heading: 0
+  gs: 20 # in kts
+
+intruder:
+  gs: 15
+
+heading_diff:
+  dpsi_start: 20
+  dpsi_end: 21
+  dpsi_delta: 5
+
+dcpa:
+  dcpa_start: 0
+  dcpa_end: 1
+  dcpa_delta: 10
+
+nb_samples: 10000
+
+uncertainties:
+  pos_sigma: 15
+  hdg_sigma: 2
+  spd_sigma: 2

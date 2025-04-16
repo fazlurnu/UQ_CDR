@@ -3,6 +3,7 @@ from typing import Tuple
 import numpy.typing as npt
 import pandas as pd
 from shapely.geometry import Point
+import yaml
 
 from autonomous_separation.traffic import cre_conflict
 from autonomous_separation.conf_detect.state_based import StateBasedDetection
@@ -11,21 +12,24 @@ from autonomous_separation.conf_reso.algorithms.VO import VOResolution
 
 class ConflictResolutionSimulation:
     def __init__(self, case_title_selected, source_of_uncertainty):
+        with open("uncertainty_quantification/uq_sim_config.yaml", "r") as f:
+            self.config = yaml.safe_load(f)
+
         # Ownship states
-        self.x_own = 0
-        self.y_own = 0
-        self.hdg_own = 0
-        self.gs_own = 20
+        self.x_own = self.config['ownship']['x']
+        self.y_own = self.config['ownship']['y']
+        self.hdg_own = self.config['ownship']['heading']
+        self.gs_own = self.config['ownship']['gs']
 
         # Loop parameters
-        self.gs_int = 15 ## this is the speed of the intruder
+        self.gs_int = self.config['intruder']['gs']
 
-        self.dcpa_start = 0
-        self.dcpa_end = 21
-        self.dcpa_delta = 10  # With start=0, end=4, delta=5 => only dcpa=0
-        self.dpsi_start = 20
-        self.dpsi_end = 22
-        self.dpsi_delta = 5
+        self.dcpa_start = self.config['dcpa']['dcpa_start']
+        self.dcpa_end = self.config['dcpa']['dcpa_end']
+        self.dcpa_delta = self.config['dcpa']['dcpa_delta']
+        self.dpsi_start = self.config['heading_diff']['dpsi_start']
+        self.dpsi_end = self.config['heading_diff']['dpsi_end']
+        self.dpsi_delta = self.config['heading_diff']['dpsi_delta']
 
         # CDR params
         self.tlosh = 15
@@ -35,7 +39,7 @@ class ConflictResolutionSimulation:
         self.vy_init = self.gs_own * np.sin(np.radians(self.hdg_own))
         self.vx_init = self.gs_own * np.cos(np.radians(self.hdg_own))
 
-        self.nb_samples = 10000
+        self.nb_samples = self.config['nb_samples']
         self.alpha_uncertainty = 0.4
 
         # Uncertainty switches (defaults to False)
@@ -70,6 +74,8 @@ class ConflictResolutionSimulation:
         if('i' in self.source_of_uncertainty):
             self.src_intruder_on = True
 
+        self.set_noise_parameters()
+
     def set_noise_parameters(self):
         """
         Adjust noise parameters (standard deviations) based on which
@@ -77,21 +83,21 @@ class ConflictResolutionSimulation:
         """
         # Position noise
         if self.pos_uncertainty_on:
-            self.sigma = 15  # Example standard deviation for position
+            self.sigma = self.config['uncertainties']['pos_sigma']  # Example standard deviation for position
 
         # Heading noise
         if self.hdg_uncertainty_on:
             if self.src_ownship_on:
-                self.hdg_sigma_ownship = 10
+                self.hdg_sigma_ownship = self.config['uncertainties']['hdg_sigma']
             if self.src_intruder_on:
-                self.hdg_sigma_intruder = 10
+                self.hdg_sigma_intruder = self.config['uncertainties']['hdg_sigma']
 
         # Speed noise
         if self.spd_uncertainty_on:
             if self.src_ownship_on:
-                self.gs_sigma_ownship = 10
+                self.gs_sigma_ownship = self.config['uncertainties']['spd_sigma']
             if self.src_intruder_on:
-                self.gs_sigma_intruder = 10
+                self.gs_sigma_intruder = self.config['uncertainties']['spd_sigma']
 
     def create_pos_noise_samples(
         self,
@@ -119,8 +125,6 @@ class ConflictResolutionSimulation:
         cd = StateBasedDetection()
         vo = VOResolution()
         mvp = MVPResolution()
-
-        print("Here")
 
         for dcpa_val in range(self.dcpa_start, self.dcpa_end, self.dcpa_delta):
             for dpsi_val in range(self.dpsi_start, self.dpsi_end, self.dpsi_delta):
@@ -154,20 +158,20 @@ class ConflictResolutionSimulation:
 
                 # --- 4. Build DataFrame of samples ---
                 df = pd.DataFrame({
-                    # 'x_own_true': self.x_own,
-                    # 'y_own_true': self.y_own,
+                    'x_own_true': self.x_own,
+                    'y_own_true': self.y_own,
                     'x_own_noise': x_o,
                     'y_own_noise': y_o,
-                    # 'hdg_own_true': self.hdg_own,
-                    # 'gs_own_true': self.gs_own,
+                    'hdg_own_true': self.hdg_own,
+                    'gs_own_true': self.gs_own,
                     'hdg_own_noise': hdg_ownship,
                     'gs_own_noise': gs_ownship,
-                    # 'x_int_true': x_int,
-                    # 'y_int_true': y_int,
+                    'x_int_true': x_int,
+                    'y_int_true': y_int,
                     'x_int_noise': x_i,
                     'y_int_noise': y_i,
-                    # 'hdg_int_true': hdg_int,
-                    # 'gs_int_true': gs_int,
+                    'hdg_int_true': hdg_int,
+                    'gs_int_true': gs_int,
                     'hdg_int_noise': hdg_intruder,
                     'gs_int_noise': gs_intruder
                 })
@@ -223,11 +227,4 @@ class ConflictResolutionSimulation:
                     axis=1
                 )
 
-                # --- 6. Filter to only rows in conflict for clustering & plotting ---
-                # df_conflict = df.loc[df['is_conflict']].copy()
-                df_conflict = df
-                if df_conflict.empty:
-                    # No conflicts => skip
-                    continue
-
-                print(df_conflict)
+                return df

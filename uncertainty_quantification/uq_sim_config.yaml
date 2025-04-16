@@ -25,10 +25,5 @@ nb_samples: 10000
 
 uncertainties:
   pos_sigma: 15
-<<<<<<< HEAD
-  hdg_sigma: 2
-  spd_sigma: 2
-=======
   hdg_sigma: 10
   spd_sigma: 10
->>>>>>> 10f0c38 (tidying up, init plot)

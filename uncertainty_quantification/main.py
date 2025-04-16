@@ -43,11 +43,13 @@ def main():
     nav_uncertainty, vehicle_uncertainty = select_uncertainty()
 
     ## ----- Starting MC simulations ---- ##
+    print("Running Monte Carlo")
     sim = ConflictResolutionSimulation(nav_uncertainty, vehicle_uncertainty)
-    df = sim.run_simulation()
+    df = sim.run_simulation(20, 0)
 
+    print("Running Plotting")
     ## ---- Plotting ---- ##
-    plot_uncertainty(df)
+    plot_uncertainty(df, sim)
 
 if __name__ == "__main__":
     main()

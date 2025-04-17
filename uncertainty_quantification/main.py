@@ -47,7 +47,7 @@ def select_uncertainty():
 
     return nav_uncertainty, vehicle_uncertainty
 
-def save_sim_metadata(sim, timestamp, csv_path, fig_path, output_dir="results/UQ"):
+def save_sim_metadata(sim, ts_id, csv_path, fig_path, output_dir="results/UQ/metadata"):
     def safe_serialize(obj):
         try:
             json.dumps(obj)
@@ -57,7 +57,7 @@ def save_sim_metadata(sim, timestamp, csv_path, fig_path, output_dir="results/UQ
 
     sim_vars = {k: safe_serialize(v) for k, v in vars(sim).items()}
 
-    filename = f"metadata_{timestamp}.json"
+    filename = f"metadata_{ts_id}.json"
     metadata_path = os.path.join(output_dir, filename)
 
     metadata = {
@@ -78,6 +78,9 @@ def save_sim_metadata(sim, timestamp, csv_path, fig_path, output_dir="results/UQ
 
 def main():
     timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
+    uid = str(uuid.uuid4())[:8]  # short UUID for readability
+    ts_id = f"{timestamp}_{uid}"
+
     nav_uncertainty, vehicle_uncertainty = select_uncertainty()
 
     ## ----- Starting MC simulations ---- ##
@@ -86,7 +89,7 @@ def main():
     df = sim.run_simulation(20, 0)
 
     csv_output_dir = "results/UQ/csv"
-    csv_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{timestamp}.csv"
+    csv_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{ts_id}.csv"
     csv_path = os.path.join(csv_output_dir, csv_name)
     df.to_csv(csv_path, index = False)
     print(f"----> csv saved to {csv_path}")
@@ -96,13 +99,13 @@ def main():
     f = plot_uncertainty(df, sim)
 
     fig_output_dir = "results/UQ/figures"
-    fig_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{timestamp}.png"
+    fig_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{ts_id}.png"
     fig_path = os.path.join(fig_output_dir, fig_name)
 
     f.savefig(fig_path, dpi=300, bbox_inches='tight')
     print(f"----> fig saved to {fig_path}")
 
-    save_sim_metadata(sim, timestamp, csv_path, fig_path)
+    save_sim_metadata(sim, ts_id, csv_path, fig_path)
 
 if __name__ == "__main__":
     main()

@@ -47,7 +47,7 @@ def select_uncertainty():
 
     return nav_uncertainty, vehicle_uncertainty
 
-def save_sim_metadata(sim, timestamp, csv_path, fig_path, output_dir="results/UQ"):
+def save_sim_metadata(sim, ts_id, csv_path, fig_path, output_dir="results/UQ/metadata"):
     def safe_serialize(obj):
         try:
             json.dumps(obj)
@@ -57,7 +57,7 @@ def save_sim_metadata(sim, timestamp, csv_path, fig_path, output_dir="results/UQ
 
     sim_vars = {k: safe_serialize(v) for k, v in vars(sim).items()}
 
-    filename = f"metadata_{timestamp}.json"
+    filename = f"metadata_{ts_id}.json"
     metadata_path = os.path.join(output_dir, filename)
 
     metadata = {

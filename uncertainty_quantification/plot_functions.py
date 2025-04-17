@@ -130,7 +130,7 @@ def plot_uncertainty(df,
     # f.ax_joint.axvline(vy_true_vo, color='tab:blue', linestyle='--',
     #                    linewidth=1.5, alpha=0.7)
     f.ax_joint.scatter(vy_true_vo, vx_true_vo, s=100, color='blue',
-                        marker='*', zorder=10, label='True VO')
+                        marker='*', zorder=200, label='True VO')
 
     # Mark lines/points for MVP
     # f.ax_joint.axhline(vx_true_mvp, color='tab:orange', linestyle='--',
@@ -138,7 +138,7 @@ def plot_uncertainty(df,
     # f.ax_joint.axvline(vy_true_mvp, color='tab:orange', linestyle='--',
     #                    linewidth=1.5, alpha=0.7)
     f.ax_joint.scatter(vy_true_mvp, vx_true_mvp, s=100, color='orange',
-                        marker='*', zorder=10, label='True MVP')
+                        marker='*', zorder=200, label='True MVP')
 
     # Rename legend labels for clarity
     handles, labels = f.ax_joint.get_legend_handles_labels()

@@ -12,7 +12,7 @@ from autonomous_separation.conf_reso.algorithms.VO import VOResolution
 
 class ConflictResolutionSimulation:
     def __init__(self, case_title_selected, source_of_uncertainty):
-        with open("uncertainty_quantification/uq_sim_config.yaml", "r") as f:
+        with open("sim_config.yaml", "r") as f:
             config = yaml.safe_load(f)
 
         # Ownship states

@@ -78,31 +78,39 @@ def save_sim_metadata(sim, timestamp, csv_path, fig_path, output_dir="results/UQ
 
 def main():
     timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
+
     nav_uncertainty, vehicle_uncertainty = select_uncertainty()
 
     ## ----- Starting MC simulations ---- ##
-    print("Running Monte Carlo")
     sim = ConflictResolutionSimulation(nav_uncertainty, vehicle_uncertainty)
-    df = sim.run_simulation(20, 0)
 
-    csv_output_dir = "results/UQ/csv"
-    csv_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{timestamp}.csv"
-    csv_path = os.path.join(csv_output_dir, csv_name)
-    df.to_csv(csv_path, index = False)
-    print(f"----> csv saved to {csv_path}")
+    for dpsi_val in range(0, 181, 3):
+        for dcpa_val in range(0, sim.rpz - 1, 5): ## ends at rpz - 1
+            print(f"#### Running dpsi: {dpsi_val}, dcpa: {dcpa_val}")
+            uid = str(uuid.uuid4())[:8]  # short UUID for readability
+            ts_id = f"{timestamp}_{uid}"
+            
+            print("Running Monte Carlo")
+            df = sim.run_simulation(dpsi_val, dcpa_val)
 
-    print("Running Plotting")
-    ## ---- Plotting ---- ##
-    f = plot_uncertainty(df, sim)
+            csv_output_dir = "results/UQ/csv"
+            csv_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{ts_id}.csv"
+            csv_path = os.path.join(csv_output_dir, csv_name)
+            df.to_csv(csv_path, index = False)
+            print(f"----> csv saved to {csv_path}")
 
-    fig_output_dir = "results/UQ/figures"
-    fig_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{timestamp}.png"
-    fig_path = os.path.join(fig_output_dir, fig_name)
+            print("Running Plotting")
+            ## ---- Plotting ---- ##
+            f = plot_uncertainty(df, sim)
 
-    f.savefig(fig_path, dpi=300, bbox_inches='tight')
-    print(f"----> fig saved to {fig_path}")
+            fig_output_dir = "results/UQ/figures"
+            fig_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{ts_id}.png"
+            fig_path = os.path.join(fig_output_dir, fig_name)
 
-    save_sim_metadata(sim, timestamp, csv_path, fig_path)
+            f.savefig(fig_path, dpi=300, bbox_inches='tight')
+            print(f"----> fig saved to {fig_path}")
+
+            save_sim_metadata(sim, ts_id, csv_path, fig_path)
 
 if __name__ == "__main__":
     main()

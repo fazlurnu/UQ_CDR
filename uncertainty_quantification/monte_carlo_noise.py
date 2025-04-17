@@ -13,26 +13,19 @@ from autonomous_separation.conf_reso.algorithms.VO import VOResolution
 class ConflictResolutionSimulation:
     def __init__(self, case_title_selected, source_of_uncertainty):
         with open("uncertainty_quantification/uq_sim_config.yaml", "r") as f:
-            self.config = yaml.safe_load(f)
+            config = yaml.safe_load(f)
 
         # Ownship states
         self.case_title_selected = case_title_selected # speed/heading/pos
         self.source_of_uncertainty = source_of_uncertainty # ownship/intruder
 
-        self.x_own = self.config['ownship']['x']
-        self.y_own = self.config['ownship']['y']
-        self.hdg_own = self.config['ownship']['heading']
-        self.gs_own = self.config['ownship']['gs']
+        self.x_own = config['ownship']['x']
+        self.y_own = config['ownship']['y']
+        self.hdg_own = config['ownship']['heading']
+        self.gs_own = config['ownship']['gs']
 
         # Loop parameters
-        self.gs_int = self.config['intruder']['gs']
-
-        self.dcpa_start = self.config['dcpa']['dcpa_start']
-        self.dcpa_end = self.config['dcpa']['dcpa_end']
-        self.dcpa_delta = self.config['dcpa']['dcpa_delta']
-        self.dpsi_start = self.config['heading_diff']['dpsi_start']
-        self.dpsi_end = self.config['heading_diff']['dpsi_end']
-        self.dpsi_delta = self.config['heading_diff']['dpsi_delta']
+        self.gs_int = config['intruder']['gs']
 
         # CDR params
         self.tlosh = 15
@@ -42,7 +35,7 @@ class ConflictResolutionSimulation:
         self.vy_init = self.gs_own * np.sin(np.radians(self.hdg_own))
         self.vx_init = self.gs_own * np.cos(np.radians(self.hdg_own))
 
-        self.nb_samples = self.config['nb_samples']
+        self.nb_samples = config['nb_samples']
         self.alpha_uncertainty = 0.4
 
         # Uncertainty switches (defaults to False)
@@ -77,30 +70,30 @@ class ConflictResolutionSimulation:
         if('i' in self.source_of_uncertainty):
             self.src_intruder_on = True
 
-        self.set_noise_parameters()
+        self.set_noise_parameters(config)
 
-    def set_noise_parameters(self):
+    def set_noise_parameters(self, config):
         """
         Adjust noise parameters (standard deviations) based on which
         uncertainties and sources are active.
         """
         # Position noise
         if self.pos_uncertainty_on:
-            self.sigma = self.config['uncertainties']['pos_sigma']  # Example standard deviation for position
+            self.sigma = config['uncertainties']['pos_sigma']  # Example standard deviation for position
 
         # Heading noise
         if self.hdg_uncertainty_on:
             if self.src_ownship_on:
-                self.hdg_sigma_ownship = self.config['uncertainties']['hdg_sigma']
+                self.hdg_sigma_ownship = config['uncertainties']['hdg_sigma']
             if self.src_intruder_on:
-                self.hdg_sigma_intruder = self.config['uncertainties']['hdg_sigma']
+                self.hdg_sigma_intruder = config['uncertainties']['hdg_sigma']
 
         # Speed noise
         if self.spd_uncertainty_on:
             if self.src_ownship_on:
-                self.gs_sigma_ownship = self.config['uncertainties']['spd_sigma']
+                self.gs_sigma_ownship = config['uncertainties']['spd_sigma']
             if self.src_intruder_on:
-                self.gs_sigma_intruder = self.config['uncertainties']['spd_sigma']
+                self.gs_sigma_intruder = config['uncertainties']['spd_sigma']
 
     def create_pos_noise_samples(
         self,

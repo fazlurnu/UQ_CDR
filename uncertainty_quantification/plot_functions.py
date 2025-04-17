@@ -1,3 +1,5 @@
+import os
+
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,6 +31,8 @@ def plot_uncertainty(df,
     df_mvp['Conf Reso'] = 'MVP'
 
     df_plot = pd.concat([df_vo, df_mvp], ignore_index=True)
+    all_vx = pd.concat([df_vo['vx'], df_mvp['vx']])
+    all_vy = pd.concat([df_vo['vy'], df_mvp['vy']])
 
     # Create jointplot
     f = sns.jointplot(
@@ -44,10 +48,19 @@ def plot_uncertainty(df,
     vy_init = sim_params.gs_own * np.sin(np.radians(sim_params.hdg_own))
     vx_init = sim_params.gs_own * np.cos(np.radians(sim_params.hdg_own))
 
-    max_offset_vy = 10
-    max_offset_vx = 10
-    f.ax_joint.set_xlim(vy_init - max_offset_vy, vy_init + max_offset_vy)
-    f.ax_joint.set_ylim(vx_init - max_offset_vx, vx_init + max_offset_vx)
+    # Compute max absolute values
+    max_vx = all_vx.abs().max() - vx_init
+    max_vy = all_vy.abs().max() - vy_init
+
+    # Update offsets if needed
+    max_offset_vx = max(max_vx, 7.5)
+    max_offset_vy = max(max_vy, 7.5)
+
+    offset = max(max_offset_vx, max_offset_vy)
+
+    # Apply limits to plot
+    f.ax_joint.set_xlim(vy_init - offset, vy_init + offset)
+    f.ax_joint.set_ylim(vx_init - offset, vx_init + offset)
 
     # --- Plot the VO region, if possible ---
     tp_1, tp_2 = vo.get_cc_tp(Point(sim_params.x_own, sim_params.y_own),
@@ -109,7 +122,7 @@ def plot_uncertainty(df,
     )
 
     handles, labels = f.ax_joint.get_legend_handles_labels()
-    f.ax_joint.legend(handles=handles, labels=labels, loc='upper right', bbox_to_anchor=(1.25, 1.2))
+    f.ax_joint.legend(handles=handles, labels=labels, loc='upper left', bbox_to_anchor=(1.25, 1.2))
 
     # Mark lines/points for VO
     # f.ax_joint.axhline(vx_true_vo, color='tab:blue', linestyle='--',
@@ -133,7 +146,7 @@ def plot_uncertainty(df,
         labels[0] = "VO Samples"
         if len(labels) > 1:
             labels[1] = "MVP Samples"
-    f.ax_joint.legend(handles=handles, labels=labels, loc='upper right')
+    f.ax_joint.legend(handles=handles, labels=labels, loc='upper left')
 
     # draw relative velocity
     # rel_vel = Point(int_vel.x - own_vel.x, int_vel.y - own_vel.y)
@@ -148,5 +161,16 @@ def plot_uncertainty(df,
 
     f.ax_joint.plot([own_vel.y, own_vel.y + dcpa[0] * 100], [own_vel.x, own_vel.x + dcpa[1] * 100], '--r', zorder = 1)
     f.ax_joint.plot([own_vel.y, own_vel.y - dcpa[0] * 100], [own_vel.x, own_vel.x - dcpa[1] * 100], '--r', zorder = 1)
-                
-    plt.show()
+
+    # fig_filename = (
+                #     f"{sim_params.case_title_selected}_{sim_params.source_of_uncertainty}_"
+                #     f"{sim_params.gs_int}_{sim_params.dpsi_val}_{sim_params.dcpa_val}_{sim_params.rpz}_{sim_params.tlosh}.png"
+                # )
+    
+    # fig_path = os.path.join(self.clustering.OUTPUT_DIR, fig_filename)
+    # f.savefig(fig_path, dpi=300, bbox_inches='tight')
+    # plt.close()  # or plt.close() if you don't want pop-up windows
+
+    # plt.show()
+
+    return f

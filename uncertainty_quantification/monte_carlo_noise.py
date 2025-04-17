@@ -16,6 +16,9 @@ class ConflictResolutionSimulation:
             self.config = yaml.safe_load(f)
 
         # Ownship states
+        self.case_title_selected = case_title_selected # speed/heading/pos
+        self.source_of_uncertainty = source_of_uncertainty # ownship/intruder
+
         self.x_own = self.config['ownship']['x']
         self.y_own = self.config['ownship']['y']
         self.hdg_own = self.config['ownship']['heading']
@@ -126,6 +129,9 @@ class ConflictResolutionSimulation:
         vo = VOResolution()
         mvp = MVPResolution()
 
+        self.dpsi_val = dpsi_val
+        self.dcpa_val = dcpa_val
+        
         # --- 1. Intruder scenario creation ---
         self.x_int, self.y_int, self.hdg_int, gs_int = cre_conflict(
             self.x_own, self.y_own, self.hdg_own, self.gs_own,

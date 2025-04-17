@@ -1,4 +1,11 @@
-import sys
+import sys, os
+
+import matplotlib.pyplot as plt
+
+from pprint import pprint
+
+import json
+import datetime
 
 from uncertainty_quantification.monte_carlo_noise import ConflictResolutionSimulation
 from uncertainty_quantification.plot_functions import plot_uncertainty
@@ -39,7 +46,37 @@ def select_uncertainty():
 
     return nav_uncertainty, vehicle_uncertainty
 
+def save_sim_metadata(sim, timestamp, csv_path, fig_path, output_dir="results/UQ"):
+    def safe_serialize(obj):
+        try:
+            json.dumps(obj)
+            return obj
+        except (TypeError, OverflowError):
+            return str(obj)
+
+    sim_vars = {k: safe_serialize(v) for k, v in vars(sim).items()}
+
+    filename = f"metadata_{timestamp}.json"
+    metadata_path = os.path.join(output_dir, filename)
+
+    metadata = {
+        "date": datetime.datetime.now().isoformat(),
+        "parameters": sim_vars,
+        "output_files": {
+            "csv": csv_path,
+            "figure": fig_path
+        }
+    }
+
+    os.makedirs(output_dir, exist_ok=True)  # Make sure the directory exists
+
+    with open(metadata_path, "w") as f:
+        json.dump(metadata, f, indent=4)
+
+    print(f"----> Metadata saved to {metadata_path}")
+
 def main():
+    timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     nav_uncertainty, vehicle_uncertainty = select_uncertainty()
 
     ## ----- Starting MC simulations ---- ##
@@ -47,9 +84,24 @@ def main():
     sim = ConflictResolutionSimulation(nav_uncertainty, vehicle_uncertainty)
     df = sim.run_simulation(20, 0)
 
+    csv_output_dir = "results/UQ/csv"
+    csv_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{timestamp}.csv"
+    csv_path = os.path.join(csv_output_dir, csv_name)
+    df.to_csv(csv_path, index = False)
+    print(f"----> csv saved to {csv_path}")
+
     print("Running Plotting")
     ## ---- Plotting ---- ##
-    plot_uncertainty(df, sim)
+    f = plot_uncertainty(df, sim)
+
+    fig_output_dir = "results/UQ/figures"
+    fig_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{timestamp}.png"
+    fig_path = os.path.join(fig_output_dir, fig_name)
+
+    f.savefig(fig_path, dpi=300, bbox_inches='tight')
+    print(f"----> fig saved to {fig_path}")
+
+    save_sim_metadata(sim, timestamp, csv_path, fig_path)
 
 if __name__ == "__main__":
     main()

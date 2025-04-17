@@ -25,5 +25,5 @@ nb_samples: 10000
 
 uncertainties:
   pos_sigma: 15
-  hdg_sigma: 10
-  spd_sigma: 10
+  hdg_sigma: 2
+  spd_sigma: 2

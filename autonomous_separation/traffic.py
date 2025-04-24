@@ -18,6 +18,8 @@ def cre_conflict(xref, yref, trkref, gsref,
     
     if(dcpa == 0):
         drelcpa = (tlosh*vrel + np.sqrt(rpz*rpz - dcpa*dcpa)) - (rpz * 0.01)
+    elif(dcpa > rpz):
+        drelcpa = 0
     else:
         drelcpa = tlosh*vrel + np.sqrt(rpz*rpz - dcpa*dcpa)
 

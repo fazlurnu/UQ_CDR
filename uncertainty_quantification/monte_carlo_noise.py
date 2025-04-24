@@ -28,8 +28,8 @@ class ConflictResolutionSimulation:
         self.gs_int = config['intruder']['gs']
 
         # CDR params
-        self.tlosh = 15
-        self.rpz = 50
+        self.tlosh = config['cr_params']['tlookahead']
+        self.rpz = config['cr_params']['rpz']
 
         # For final plot axis limits
         self.vy_init = self.gs_own * np.sin(np.radians(self.hdg_own))
@@ -181,7 +181,7 @@ class ConflictResolutionSimulation:
         ]
 
         # --- 5. Detect conflicts, apply conflict resolution ---
-        df[['tin', 'tout', 'dcpa', 'is_conflict']] = df.apply(
+        df[['tcpa', 'tin', 'tout', 'dcpa', 'is_conflict']] = df.apply(
             lambda row: pd.Series(cd.conf_detect_hor(
                 ownship_position=row['pos_ownship'],
                 ownship_gs=row['gs_own_noise'],
@@ -223,5 +223,83 @@ class ConflictResolutionSimulation:
             )),
             axis=1
         )
+
+        return df
+    
+    def run_simulation_no_noise(self, dpsi_val, dcpa_val):
+        # Instantiate the CD and CR
+        cd = StateBasedDetection()
+        vo = VOResolution()
+        mvp = MVPResolution()
+
+        self.dpsi_val = dpsi_val
+        self.dcpa_val = dcpa_val
+
+        # --- 1. Intruder scenario creation ---
+        self.x_int, self.y_int, self.hdg_int, gs_int = cre_conflict(
+            self.x_own, self.y_own, self.hdg_own, self.gs_own,
+            dpsi_val, dcpa_val, self.tlosh, self.gs_int, self.rpz
+        )
+
+        # --- 2. Define true positions as Points ---
+        pos_ownship = Point(self.x_own, self.y_own)
+        pos_intruder = Point(self.x_int, self.y_int)
+
+        # --- 3. Detect conflict using true values only ---
+        tcpa, tin, tout, dcpa, is_conflict = cd.conf_detect_hor(
+            ownship_position=pos_ownship,
+            ownship_gs=self.gs_own,
+            ownship_trk=self.hdg_own,
+            intruder_position=pos_intruder,
+            intruder_gs=gs_int,
+            intruder_trk=self.hdg_int,
+            rpz=self.rpz,
+            tlookahead=self.tlosh
+        )
+
+        # --- 4. Resolution vectors using true values ---
+        vx_vo, vy_vo = vo.resolve(
+            ownship_position=pos_ownship,
+            ownship_gs=self.gs_own,
+            ownship_trk=self.hdg_own,
+            intruder_position=pos_intruder,
+            intruder_gs=gs_int,
+            intruder_trk=self.hdg_int,
+            rpz=self.rpz,
+            tlookahead=self.tlosh,
+            method=0
+        )
+
+        vx_mvp, vy_mvp = mvp.resolve(
+            ownship_position=pos_ownship,
+            ownship_gs=self.gs_own,
+            ownship_trk=self.hdg_own,
+            intruder_position=pos_intruder,
+            intruder_gs=gs_int,
+            intruder_trk=self.hdg_int,
+            rpz=self.rpz,
+            tlookahead=self.tlosh
+        )
+
+        # --- 5. Return a one-row DataFrame with all true values ---
+        df = pd.DataFrame([{
+            'x_own': self.x_own,
+            'y_own': self.y_own,
+            'hdg_own': self.hdg_own,
+            'gs_own': self.gs_own,
+            'x_int': self.x_int,
+            'y_int': self.y_int,
+            'hdg_int': self.hdg_int,
+            'gs_int': gs_int,
+            'tcpa': tcpa,
+            'tin': tin,
+            'tout': tout,
+            'dcpa': dcpa,
+            'is_conflict': is_conflict,
+            'vx_vo': vx_vo,
+            'vy_vo': vy_vo,
+            'vx_mvp': vx_mvp,
+            'vy_mvp': vy_mvp
+        }])
 
         return df

@@ -9,6 +9,8 @@ import json
 import datetime
 import uuid
 
+import yaml
+
 from uncertainty_quantification.monte_carlo_noise import ConflictResolutionSimulation
 from uncertainty_quantification.plot_functions import plot_uncertainty
 
@@ -49,6 +51,9 @@ def select_uncertainty():
     return nav_uncertainty, vehicle_uncertainty
 
 def main():
+    with open("sim_config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+
     timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     uid = str(uuid.uuid4())[:8]  # short UUID for readability
     ts_id = f"{timestamp}_{uid}"
@@ -60,11 +65,16 @@ def main():
     sim = ConflictResolutionSimulation(nav_uncertainty, vehicle_uncertainty)
     dpsi_val = 20
     
+    tlosh = config['cr_params']['tlookahead']
+    rpz = config['cr_params']['rpz']
+
     for dcpa_val in range(0, 41, 10):
         df = sim.run_simulation(dpsi_val, dcpa_val)
         df_no_noise = sim.run_simulation_no_noise(dpsi_val, dcpa_val)
 
-        df = df.dropna()
+        print(len(df[df['dcpa'] < rpz])/100, len(df[df['tin'] < tlosh])/100)
+
+        df = df[df['tin'] < 1e7]
 
         features = ['tcpa', 'dcpa', 'tin']
 

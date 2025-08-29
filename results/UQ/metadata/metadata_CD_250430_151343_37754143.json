@@ -1,0 +1,38 @@
+{
+    "date": "2025-04-30T15:13:48.583719",
+    "parameters": {
+        "case_title_selected": "shp",
+        "source_of_uncertainty": "oi",
+        "x_own": 0,
+        "y_own": 0,
+        "hdg_own": 0,
+        "gs_own": 10.2880658436214,
+        "gs_int": 7.71604938271605,
+        "tlosh": 15,
+        "rpz": 50,
+        "vy_init": 0.0,
+        "vx_init": 10.2880658436214,
+        "nb_samples": 10000,
+        "alpha_uncertainty": 0.4,
+        "pos_uncertainty_on": true,
+        "hdg_uncertainty_on": true,
+        "spd_uncertainty_on": true,
+        "src_ownship_on": true,
+        "src_intruder_on": true,
+        "sigma": 15,
+        "hdg_sigma_ownship": 2,
+        "hdg_sigma_intruder": 2,
+        "gs_sigma_ownship": 0.5,
+        "gs_sigma_intruder": 0.5,
+        "reso_algo": null,
+        "dpsi_val": 180,
+        "dcpa_val": 45,
+        "x_int": 291.8562231127651,
+        "y_int": -45.000000000000014,
+        "hdg_int": 180
+    },
+    "output_files": {
+        "csv": "results/UQ/csv/CD/shp_oi/CD_shp_oi_250430_151343_37754143_0.csv",
+        "figure": "results/UQ/figures/CD/shp_oi/CD_shp_oi_250430_151343_37754143.png"
+    }
+}

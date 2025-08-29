@@ -1,0 +1,38 @@
+{
+    "date": "2025-04-30T14:03:06.600739",
+    "parameters": {
+        "case_title_selected": "h",
+        "source_of_uncertainty": "oi",
+        "x_own": 0,
+        "y_own": 0,
+        "hdg_own": 0,
+        "gs_own": 10.2880658436214,
+        "gs_int": 7.71604938271605,
+        "tlosh": 15,
+        "rpz": 50,
+        "vy_init": 0.0,
+        "vx_init": 10.2880658436214,
+        "nb_samples": 10000,
+        "alpha_uncertainty": 0.4,
+        "pos_uncertainty_on": false,
+        "hdg_uncertainty_on": true,
+        "spd_uncertainty_on": false,
+        "src_ownship_on": true,
+        "src_intruder_on": true,
+        "sigma": 0,
+        "hdg_sigma_ownship": 2,
+        "hdg_sigma_intruder": 2,
+        "gs_sigma_ownship": 0,
+        "gs_sigma_intruder": 0,
+        "reso_algo": null,
+        "dpsi_val": 180,
+        "dcpa_val": 0,
+        "x_int": 320.0617283950618,
+        "y_int": -1.6798395908939224e-14,
+        "hdg_int": 180
+    },
+    "output_files": {
+        "csv": "results/UQ/csv/CD/h_oi/CD_h_oi_250430_140301_096963c4_0.csv",
+        "figure": "results/UQ/figures/CD/h_oi/CD_h_oi_250430_140301_096963c4.png"
+    }
+}

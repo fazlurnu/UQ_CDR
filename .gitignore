@@ -1,1 +1,5 @@
 __pycache__
+*code-workspace
+results/UQ/*csv
+results/UQ/*png
+results/UQ/*json

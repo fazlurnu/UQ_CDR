@@ -47,7 +47,7 @@ class StateBasedDetection(ConflictDetection):
         else:
             dcpa = np.sqrt(dcpa2)
 
-        LOS = dcpa < rpz
+        LOS = dcpa <= rpz
 
         if LOS:
             tcrosshi = tcpa + np.sqrt(rpz ** 2 - dcpa ** 2) / vrel
@@ -58,6 +58,6 @@ class StateBasedDetection(ConflictDetection):
 
             is_in_conflict = (dcpa < rpz) and (tin < tlookahead)
 
-            return (tin, tout, dcpa, is_in_conflict)
+            return (tcpa, tin, tout, dcpa, is_in_conflict)
         else:
-            return (0.0, 1e4, dcpa, False)
+            return (tcpa, 1e8, -1e8, dcpa, False)

@@ -22,10 +22,12 @@ class ConflictResolutionSimulation:
         self.x_own = config['ownship']['x']
         self.y_own = config['ownship']['y']
         self.hdg_own = config['ownship']['heading']
-        self.gs_own = config['ownship']['gs']
+        self.gs_own = config['ownship']['gs'] / 1.944 # in m/s
+        # self.gs_own = config['ownship']['gs']
 
         # Loop parameters
-        self.gs_int = config['intruder']['gs']
+        self.gs_int = config['intruder']['gs'] / 1.944 # in m/s
+        # self.gs_int = config['intruder']['gs']
 
         # CDR params
         self.tlosh = config['cr_params']['tlookahead']
@@ -40,17 +42,17 @@ class ConflictResolutionSimulation:
 
         # Uncertainty switches (defaults to False)
         self.pos_uncertainty_on = False
-        self.hdg_uncertainty_on = False
-        self.spd_uncertainty_on = False
+        self.vel_uncertainty_on = False
         self.src_ownship_on = False
         self.src_intruder_on = False
 
         # Noise parameters
-        self.sigma = 0
+        self.pos_acc = 0
         self.hdg_sigma_ownship = 0
         self.hdg_sigma_intruder = 0
         self.gs_sigma_ownship = 0
         self.gs_sigma_intruder = 0
+        self.vel_acc = 0
 
         # For user selections
         self.case_title_selected = case_title_selected
@@ -58,12 +60,10 @@ class ConflictResolutionSimulation:
 
         self.reso_algo = None
 
-        if('s' in self.case_title_selected):
-            self.spd_uncertainty_on = True
-        if('h' in self.case_title_selected):
-            self.hdg_uncertainty_on = True
         if('p' in self.case_title_selected):
             self.pos_uncertainty_on = True
+        if('v' in self.case_title_selected):
+            self.vel_uncertainty_on = True
 
         if('o' in self.source_of_uncertainty):
             self.src_ownship_on = True
@@ -79,31 +79,41 @@ class ConflictResolutionSimulation:
         """
         # Position noise
         if self.pos_uncertainty_on:
-            self.sigma = config['uncertainties']['pos_sigma']  # Example standard deviation for position
+            self.pos_acc = config['uncertainties']['pos_accuracy']  # Example standard deviation for position
 
-        # Heading noise
-        if self.hdg_uncertainty_on:
-            if self.src_ownship_on:
-                self.hdg_sigma_ownship = config['uncertainties']['hdg_sigma']
-            if self.src_intruder_on:
-                self.hdg_sigma_intruder = config['uncertainties']['hdg_sigma']
-
-        # Speed noise
-        if self.spd_uncertainty_on:
-            if self.src_ownship_on:
-                self.gs_sigma_ownship = config['uncertainties']['spd_sigma']
-            if self.src_intruder_on:
-                self.gs_sigma_intruder = config['uncertainties']['spd_sigma']
+        if self.vel_uncertainty_on:
+            self.vel_acc = config['uncertainties']['vel_accuracy']
 
     def create_pos_noise_samples(
         self,
         x_ground_truth: float,
         y_ground_truth: float,
-        sigma: float,
+        pos_acc: float,
         nb_samples: int = 10000
     ) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         
-        std_dev = sigma / 2.448 # this one ensures 95% of the data is within 2 sigma for a 2D gaussian
+        std_dev = pos_acc / 2.448 # this one ensures 95% of the data is within 2 sigma for a 2D gaussian
+
+        cov = np.array([[std_dev**2, 0], 
+                        [0, std_dev**2]])
+        
+        # Generate random samples from multivariate normal distribution
+        x, y = np.random.multivariate_normal((0, 0), cov, nb_samples).T
+
+        x_noise = x_ground_truth + x
+        y_noise = y_ground_truth + y
+
+        return x_noise, y_noise
+    
+    def create_vel_noise_samples(
+        self,
+        x_ground_truth: float,
+        y_ground_truth: float,
+        vel_acc: float,
+        nb_samples: int = 10000
+    ) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        
+        std_dev = vel_acc / 2.448 # this one ensures 95% of the data is within 2 sigma for a 2D gaussian
 
         cov = np.array([[std_dev**2, 0], 
                         [0, std_dev**2]])
@@ -133,25 +143,35 @@ class ConflictResolutionSimulation:
 
         # --- 2. Create noisy positions ---
         x_o, y_o = self.create_pos_noise_samples(
-            self.x_own, self.y_own, self.sigma, self.nb_samples
+            self.x_own, self.y_own, self.pos_acc, self.nb_samples
         )
         x_i, y_i = self.create_pos_noise_samples(
-            self.x_int, self.y_int, self.sigma, self.nb_samples
+            self.x_int, self.y_int, self.pos_acc, self.nb_samples
         )
 
-        # --- 3. Create noisy heading & speed for ownship/intruder ---
-        hdg_ownship = np.random.normal(
-            self.hdg_own, self.hdg_sigma_ownship, self.nb_samples
+        
+        self.vx_own = self.gs_own * np.cos(np.deg2rad(self.hdg_own))
+        self.vy_own = self.gs_own * np.sin(np.deg2rad(self.hdg_own))
+
+        self.vx_int = gs_int * np.cos(np.deg2rad(self.hdg_int))
+        self.vy_int = gs_int * np.sin(np.deg2rad(self.hdg_int))
+
+        # --- 2. Create noisy positions ---
+        vx_o, vy_o = self.create_vel_noise_samples(
+            self.vx_own, self.vy_own, self.vel_acc, self.nb_samples
         )
-        gs_ownship = np.random.normal(
-            self.gs_own, self.gs_sigma_ownship, self.nb_samples
+        vx_i, vy_i = self.create_pos_noise_samples(
+            self.vx_int, self.vy_int, self.vel_acc, self.nb_samples
         )
-        hdg_intruder = np.random.normal(
-            self.hdg_int, self.hdg_sigma_intruder, self.nb_samples
-        )
-        gs_intruder = np.random.normal(
-            gs_int, self.gs_sigma_intruder, self.nb_samples
-        )
+
+        gs_ownship = np.sqrt(vx_o**2 + vy_o**2)
+        gs_intruder = np.sqrt(vx_i**2 + vy_i**2)
+
+        hdg_ownship = np.degrees(np.arctan2(vy_o, vx_o))
+        hdg_ownship = (hdg_ownship + 360) % 360
+
+        hdg_intruder = np.degrees(np.arctan2(vy_i, vx_i))
+        hdg_intruder = (hdg_intruder + 360) % 360
 
         # --- 4. Build DataFrame of samples ---
         df = pd.DataFrame({
@@ -178,6 +198,14 @@ class ConflictResolutionSimulation:
         ]
         df['pos_intruder'] = [
             Point(a, b) for a, b in zip(df['x_int_noise'], df['y_int_noise'])
+        ]
+
+        df['pos_ownship_true'] = [
+            Point(a, b) for a, b in zip(df['x_own_true'], df['y_own_true'])
+        ]
+
+        df['pos_intruder_true'] = [
+            Point(a, b) for a, b in zip(df['x_int_true'], df['y_int_true'])
         ]
 
         # --- 5. Detect conflicts, apply conflict resolution ---
@@ -218,6 +246,49 @@ class ConflictResolutionSimulation:
                 intruder_position=row['pos_intruder'],
                 intruder_gs=row['gs_int_noise'],
                 intruder_trk=row['hdg_int_noise'],
+                rpz=self.rpz,
+                tlookahead=self.tlosh,
+            )),
+            axis=1
+        )
+
+        df[['vx_vo_int', 'vy_vo_int']] = df.apply(
+            lambda row: pd.Series(vo.resolve(
+                ownship_position=row['pos_intruder'],
+                ownship_gs=row['gs_int_noise'],
+                ownship_trk=row['hdg_int_noise'],
+                intruder_position=row['pos_ownship'],
+                intruder_gs=row['gs_own_noise'],
+                intruder_trk=row['hdg_own_noise'],
+                rpz=self.rpz,
+                tlookahead=self.tlosh,
+                method=0
+            )),
+            axis=1
+        )
+
+        df[['vx_mvp_int', 'vy_mvp_int']] = df.apply(
+            lambda row: pd.Series(mvp.resolve(
+                ownship_position=row['pos_intruder'],
+                ownship_gs=row['gs_int_noise'],
+                ownship_trk=row['hdg_int_noise'],
+                intruder_position=row['pos_ownship'],
+                intruder_gs=row['gs_own_noise'],
+                intruder_trk=row['hdg_own_noise'],
+                rpz=self.rpz,
+                tlookahead=self.tlosh,
+            )),
+            axis=1
+        )
+
+        df[['vx_mvp_true', 'vy_mvp_true']] = df.apply(
+            lambda row: pd.Series(mvp.resolve(
+                ownship_position=row['pos_ownship_true'],
+                ownship_gs=row['gs_own_true'],
+                ownship_trk=row['hdg_own_true'],
+                intruder_position=row['pos_intruder_true'],
+                intruder_gs=row['gs_int_true'],
+                intruder_trk=row['hdg_int_true'],
                 rpz=self.rpz,
                 tlookahead=self.tlosh,
             )),

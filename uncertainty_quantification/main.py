@@ -3,7 +3,7 @@ import sys, os
 import matplotlib.pyplot as plt
 
 from pprint import pprint
-
+import pandas as pd
 import json
 import datetime
 import uuid
@@ -20,25 +20,38 @@ def select_uncertainty():
     """
     # 1. Create a selector for user input
 
-    if len(sys.argv) != 3:
-        print("Usage: python main.py <nav_uncertainty> <vehicle_uncertainty>")
-        print("  - nav_uncertainty: combination of s (speed), h (heading), p (position)")
-        print("  - vehicle_uncertainty: combination 'o' (ownship) and 'i' (intruder)")
-        
-        print("Settings is set to default: shp oi")
+    import sys
 
-        nav_uncertainty = 'shp'
+    # Handle different numbers of arguments
+    if len(sys.argv) == 1:
+        print("Usage: python main.py <nav_uncertainty> <vehicle_uncertainty>")
+        print("  - nav_uncertainty: combination of p (position), v (velocity)")
+        print("  - vehicle_uncertainty: combination 'o' (ownship) and 'i' (intruder)")
+        print("Settings is set to default: pv oi")
+
+        nav_uncertainty = 'pv'
         vehicle_uncertainty = 'oi'
-    else:
-        nav_uncertainty = sys.argv[1].lower().strip()  # e.g. "sh", "p", "s", "shp"
-        vehicle_uncertainty = sys.argv[2].lower().strip()    # e.g. "o" or "i"
+        
+    elif len(sys.argv) == 2:
+        nav_uncertainty = sys.argv[1].lower().strip()
+        vehicle_uncertainty = 'oi'
 
         print(f"Settings is set to: {nav_uncertainty} {vehicle_uncertainty}")
 
+    elif len(sys.argv) == 3:
+        nav_uncertainty = sys.argv[1].lower().strip()
+        vehicle_uncertainty = sys.argv[2].lower().strip()
+
+        print(f"Settings is set to: {nav_uncertainty} {vehicle_uncertainty}")
+
+    else:
+        print("Too many arguments provided.")
+        sys.exit(1)
+
     # Validate nav_uncertainty letters
-    allowed_uncertainty_letters = {'s', 'h', 'p'}
+    allowed_uncertainty_letters = {'p', 'v'}
     if any(char not in allowed_uncertainty_letters for char in nav_uncertainty):
-        raise ValueError("nav_uncertainty can only contain 's', 'h', 'p'")
+        raise ValueError("nav_uncertainty can only contain 'p', 'v', or 'pv")
 
     # Validate vehicle_uncertainty letters
     allowed_vehicle_letters = {'o', 'i'}
@@ -57,7 +70,7 @@ def save_sim_metadata(sim, ts_id, csv_path, fig_path, output_dir="results/UQ/met
 
     sim_vars = {k: safe_serialize(v) for k, v in vars(sim).items()}
 
-    filename = f"metadata_{ts_id}.json"
+    filename = f"CR_metadata_{ts_id}.json"
     metadata_path = os.path.join(output_dir, filename)
 
     metadata = {
@@ -77,35 +90,41 @@ def save_sim_metadata(sim, ts_id, csv_path, fig_path, output_dir="results/UQ/met
     print(f"----> Metadata saved to {metadata_path}")
 
 def main():
-    timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-    uid = str(uuid.uuid4())[:8]  # short UUID for readability
-    ts_id = f"{timestamp}_{uid}"
-
     nav_uncertainty, vehicle_uncertainty = select_uncertainty()
 
     ## ----- Starting MC simulations ---- ##
     print("Running Monte Carlo")
     sim = ConflictResolutionSimulation(nav_uncertainty, vehicle_uncertainty)
-    df = sim.run_simulation(20, 0)
 
-    csv_output_dir = "results/UQ/csv"
-    csv_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{ts_id}.csv"
-    csv_path = os.path.join(csv_output_dir, csv_name)
-    df.to_csv(csv_path, index = False)
-    print(f"----> csv saved to {csv_path}")
+    init_dpsi = 2
+    init_dcpa = 0
 
-    print("Running Plotting")
-    ## ---- Plotting ---- ##
-    f = plot_uncertainty(df, sim)
+    for init_dpsi, init_dcpa in [(10, 0), (40, 0), (40, 15)]:
+        timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
+        uid = str(uuid.uuid4())[:8]  # short UUID for readability
+        ts_id = f"{timestamp}_{uid}"
+        
+        df = sim.run_simulation(init_dpsi, init_dcpa)
 
-    fig_output_dir = "results/UQ/figures"
-    fig_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{ts_id}.png"
-    fig_path = os.path.join(fig_output_dir, fig_name)
+        csv_output_dir = "results/UQ/csv/CR"
+        csv_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{ts_id}.csv"
+        csv_path = os.path.join(csv_output_dir, csv_name)
+        df.to_csv(csv_path, index = False)
+        print(f"----> csv saved to {csv_path}")
 
-    f.savefig(fig_path, dpi=300, bbox_inches='tight')
-    print(f"----> fig saved to {fig_path}")
+        print("Running Plotting")
+        ## ---- Plotting ---- ##
+        df = df[df['is_conflict'] == True]
+        f = plot_uncertainty(df, sim)
 
-    save_sim_metadata(sim, ts_id, csv_path, fig_path)
+        fig_output_dir = "results/UQ/figures/CR"
+        fig_name = f"{nav_uncertainty}_{vehicle_uncertainty}_{ts_id}.png"
+        fig_path = os.path.join(fig_output_dir, fig_name)
+
+        f.savefig(fig_path, dpi=300, bbox_inches='tight')
+        print(f"----> fig saved to {fig_path}")
+
+        save_sim_metadata(sim, ts_id, csv_path, fig_path)
 
 if __name__ == "__main__":
     main()

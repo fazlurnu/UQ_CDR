@@ -172,9 +172,9 @@ def plot_uncertainty(df,
     # Rename legend labels for clarity
     handles, labels = f.ax_joint.get_legend_handles_labels()
     if labels:
-        labels[0] = "VO Samples"
+        labels[0] = "MVP Samples"
         if len(labels) > 1:
-            labels[1] = "MVP Samples"
+            labels[1] = "VO Samples"
     f.ax_joint.legend(handles=handles, labels=labels, loc='upper right')
     
     # fig_path = os.path.join(self.clustering.OUTPUT_DIR, fig_filename)

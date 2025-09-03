@@ -96,10 +96,7 @@ def main():
     print("Running Monte Carlo")
     sim = ConflictResolutionSimulation(nav_uncertainty, vehicle_uncertainty)
 
-    init_dpsi = 2
-    init_dcpa = 0
-
-    for init_dpsi, init_dcpa in [(10, 0), (40, 0), (40, 15)]:
+    for init_dpsi, init_dcpa in [(2, 0), (2, 45)]:
         timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
         uid = str(uuid.uuid4())[:8]  # short UUID for readability
         ts_id = f"{timestamp}_{uid}"

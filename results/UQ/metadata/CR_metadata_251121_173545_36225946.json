@@ -1,0 +1,42 @@
+{
+    "date": "2025-11-21T17:35:55.615664",
+    "parameters": {
+        "case_title_selected": "p",
+        "source_of_uncertainty": "oi",
+        "x_own": 0,
+        "y_own": 0,
+        "hdg_own": 0,
+        "gs_own": 10.2880658436214,
+        "gs_int": 10.2880658436214,
+        "tlosh": 15,
+        "rpz": 50,
+        "vy_init": 0.0,
+        "vx_init": 10.2880658436214,
+        "nb_samples": 10000,
+        "alpha_uncertainty": 0.4,
+        "pos_uncertainty_on": true,
+        "vel_uncertainty_on": false,
+        "src_ownship_on": true,
+        "src_intruder_on": true,
+        "pos_acc": 15,
+        "hdg_sigma_ownship": 0,
+        "hdg_sigma_intruder": 0,
+        "gs_sigma_ownship": 0,
+        "gs_sigma_intruder": 0,
+        "vel_acc": 0,
+        "reso_algo": null,
+        "dpsi_val": 30,
+        "dcpa_val": 0,
+        "x_int": 33.61604426370031,
+        "y_int": -125.45678514161389,
+        "hdg_int": 30,
+        "vx_own": 10.2880658436214,
+        "vy_own": 0.0,
+        "vx_int": 8.909726376383114,
+        "vy_int": 5.144032921810699
+    },
+    "output_files": {
+        "csv": "results/UQ/csv/CR/p_oi_251121_173545_36225946.csv",
+        "figure": "results/UQ/figures/CR/p_oi_251121_173545_36225946.png"
+    }
+}

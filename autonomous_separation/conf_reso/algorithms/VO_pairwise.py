@@ -13,8 +13,8 @@ class VOResolution(ConflictResolution):
         self.reso_name = "VO"
         self.algo = VO() # Instance of the core VO logic
 
-    def resolve(self, ownship_position, ownship_gs, ownship_trk,
-                      intruder_position, intruder_gs, intruder_trk,
+    def resolve(self, ownship_pos, ownship_gs, ownship_trk,
+                      intruder_pos, intruder_gs, intruder_trk,
                       rpz, tlookahead, method=0, scale=1.0, resofach=1.05):
         
         # Apply safety factor to Protected Zone
@@ -26,8 +26,8 @@ class VOResolution(ConflictResolution):
         own_p = Point(0, 0) 
         
         # Relative Position (Intruder - Ownship)
-        dx = intruder_position.x - ownship_position.x
-        dy = intruder_position.y - ownship_position.y
+        dx = intruder_pos.x - ownship_pos.x
+        dy = intruder_pos.y - ownship_pos.y
         int_p_rel = Point(dx, dy) 
         
         # Aviation Math: Vx (East) = Sin(trk), Vy (North) = Cos(trk)
@@ -158,3 +158,5 @@ class VOResolution(ConflictResolution):
         diff1 = self.angle_difference(current, hdg_1)
         diff2 = self.angle_difference(current, hdg_2)
         return vector_1 if diff1 < diff2 else vector_2
+    
+    

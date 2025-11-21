@@ -35,8 +35,8 @@ class StateBasedWrapper(ConflictDetection):
                         rpz, tlookahead) -> Tuple[float, float, float, float, bool]:
         
         # 1. Batch inputs into lists [Ownship, Intruder]
-        lats = [ownship_pos[0], intruder_pos[0]]
-        lons = [ownship_pos[1], intruder_pos[1]]
+        lats = [ownship_pos.x, intruder_pos.x]
+        lons = [ownship_pos.y, intruder_pos.y]
         gss  = [ownship_gs, intruder_gs]
         trks = [ownship_trk, intruder_trk]
         ids  = ["OWN", "INT"]

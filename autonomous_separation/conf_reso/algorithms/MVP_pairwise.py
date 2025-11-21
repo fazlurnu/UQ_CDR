@@ -75,8 +75,8 @@ class MVPResolution(ConflictResolution):
 
         return traf, conf, qdr, dist, tcpa
 
-    def resolve(self, ownship_position, ownship_gs, ownship_trk,
-                      intruder_position, intruder_gs, intruder_trk,
+    def resolve(self, ownship_pos, ownship_gs, ownship_trk,
+                      intruder_pos, intruder_gs, intruder_trk,
                       rpz, tlookahead=300, resofach=1.05):
         
         # Update safety factor if passed dynamically
@@ -84,8 +84,8 @@ class MVPResolution(ConflictResolution):
 
         # Prepare data
         traf, conf, qdr, dist, tcpa = self._prepare_data(
-            ownship_position, ownship_gs, ownship_trk,
-            intruder_position, intruder_gs, intruder_trk,
+            ownship_pos, ownship_gs, ownship_trk,
+            intruder_pos, intruder_gs, intruder_trk,
             rpz, tlookahead
         )
 
@@ -110,22 +110,22 @@ class MVPResolution(ConflictResolution):
 
         return new_ve, new_vn
 
-    def resolve_with_dcpa(self, ownship_position, ownship_gs, ownship_trk,
-                      intruder_position, intruder_gs, intruder_trk,
+    def resolve_with_dcpa(self, ownship_pos, ownship_gs, ownship_trk,
+                      intruder_pos, intruder_gs, intruder_trk,
                       rpz, tlookahead, resofach=1.05):
         
         # Standard resolution
         vx, vy = self.resolve(
-            ownship_position, ownship_gs, ownship_trk,
-            intruder_position, intruder_gs, intruder_trk,
+            ownship_pos, ownship_gs, ownship_trk,
+            intruder_pos, intruder_gs, intruder_trk,
             rpz, tlookahead, resofach
         )
 
         # Re-calculate DCPA for return
         # (We calculate this inside resolve, but to keep signatures clean we re-do or extract it)
         # Ideally, we calculate it manually here to ensure we return the vector based on original paths
-        dx = intruder_position.x - ownship_position.x
-        dy = intruder_position.y - ownship_position.y
+        dx = intruder_pos.x - ownship_pos.x
+        dy = intruder_pos.y - ownship_pos.y
         
         ve_own = ownship_gs * np.cos(np.radians(ownship_trk))
         vn_own = ownship_gs * np.sin(np.radians(ownship_trk))

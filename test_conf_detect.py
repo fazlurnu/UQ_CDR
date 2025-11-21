@@ -1,5 +1,5 @@
 from shapely.geometry import Point
-from autonomous_separation.conf_detect.state_based_pair import StateBasedWrapper
+from autonomous_separation.conf_detect.state_based_pairwise import StateBasedWrapper
 import numpy as np
 from typing import Tuple
 

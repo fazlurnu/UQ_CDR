@@ -10,7 +10,7 @@ class MVP(Entity):
 
     Taken from BlueSky library, but made "adjustable" as a separate script here
     """
-    def __init__(self, resofach = 1.05, resofacv = 1.05):
+    def __init__(self):
         super().__init__()
         # [-] switch to limit resolution to the horizontal direction
         self.swresohoriz = True
@@ -21,8 +21,11 @@ class MVP(Entity):
         # [-] switch to limit resolution to the vertical direction
         self.swresovert = False
 
-        self.resofach = resofach
-        self.resofacv = resofacv
+        # Resolution factors:
+        # set < 1 to maneuver only a fraction of the resolution
+        # set > 1 to add a margin to separation values
+        self.resofach = bs.settings.asas_marh
+        self.resofacv = bs.settings.asas_marv
 
         self.swprio = False  # switch priority on/off
         self.priocode = ''  # select priority mode

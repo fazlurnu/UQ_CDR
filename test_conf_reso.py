@@ -5,7 +5,7 @@ import numpy as np
 # Import the resolution classes
 # from autonomous_separation.conf_reso.algorithms.MVP_pairwise import MVPResolution
 from autonomous_separation.conf_reso.algorithms.VO_pairwise import VOResolution
-from autonomous_separation.conf_reso.algorithms.MVP_new import MVPResolution
+from autonomous_separation.conf_reso.algorithms.MVP_pairwise import MVPResolution
 
 # Define dummy input for testing
 ownship_position = Point(0, 0)

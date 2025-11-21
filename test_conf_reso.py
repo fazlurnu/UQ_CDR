@@ -37,6 +37,20 @@ def test_mvp():
     )
     print("Resolved Velocity (x, y, mag):", vx, vy, np.sqrt(vx**2 + vy**2))
 
+def test_mvp_dcpa():
+    print("\n=== Testing MVPResolution ===")
+    mvp = MVPResolution()
+    vx, vy, dcpa = mvp.resolve_with_dcpa(
+        ownship_position=ownship_position,
+        ownship_gs=ownship_gs,
+        ownship_trk=ownship_heading,
+        intruder_position=intruder_position,
+        intruder_gs=intruder_gs,
+        intruder_trk=intruder_heading,
+        rpz=rpz,
+        tlookahead=tlookahead
+    )
+    print("Resolved Velocity (x, y, mag):", vx, vy, np.sqrt(vx**2 + vy**2), dcpa)
 
 def test_vo():
     print("\n=== Testing VOResolution ===")
@@ -57,4 +71,5 @@ def test_vo():
 
 if __name__ == "__main__":
     test_mvp()
+    test_mvp_dcpa()
     test_vo()

@@ -127,13 +127,13 @@ class MVPResolution(ConflictResolution):
         dx = intruder_position.x - ownship_position.x
         dy = intruder_position.y - ownship_position.y
         
-        ve_own = ownship_gs * np.sin(np.radians(ownship_trk))
-        vn_own = ownship_gs * np.cos(np.radians(ownship_trk))
-        ve_int = intruder_gs * np.sin(np.radians(intruder_trk))
-        vn_int = intruder_gs * np.cos(np.radians(intruder_trk))
+        ve_own = ownship_gs * np.cos(np.radians(ownship_trk))
+        vn_own = ownship_gs * np.sin(np.radians(ownship_trk))
+        ve_int = intruder_gs * np.cos(np.radians(intruder_trk))
+        vn_int = intruder_gs * np.sin(np.radians(intruder_trk))
         
-        dvx = ve_int - ve_own
-        dvy = vn_int - vn_own
+        dvx = ve_own - ve_int
+        dvy = vn_own - vn_int
         
         if (dvx**2 + dvy**2) < 1e-6:
             tcpa = 0
